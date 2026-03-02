@@ -16,6 +16,7 @@ builder.Services.AddHttpClient();
 
 // Register your service correctly
 builder.Services.AddScoped<IResumeParserService, ResumeParserService>();
+builder.Services.AddScoped<IJobService, JobService>();
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
 

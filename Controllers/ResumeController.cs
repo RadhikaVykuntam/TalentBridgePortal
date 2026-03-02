@@ -14,12 +14,12 @@ namespace TalentBridgePortal.Controllers
             _resumeParserService = resumeParserService;
         }
 
-        [HttpGet("evaluate/{jobSeekerId}")]
-        public async Task<IActionResult> EvaluateFromDb(string jobSeekerId)
+        [HttpGet("evaluate/{email}")]
+        public async Task<IActionResult> EvaluateFromDb(string email)
         {
             try
             {
-                var result = await _resumeParserService.EvaluateResumeFromDbAsync(jobSeekerId);
+                var result = await _resumeParserService.EvaluateResumeFromDbAsync(email);
                 return Ok(result);
             }
             catch (Exception ex)

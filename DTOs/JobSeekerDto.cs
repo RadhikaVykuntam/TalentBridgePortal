@@ -1,20 +1,18 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TalentBridgePortal.Models
+namespace TalentBridgePortal.DTOs
 {
-    public class JobSeeker
+    public class JobSeekerDto
     {
-        [Key]
         public Guid Id { get; set; }
 
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        [EmailAddress]
         public string Email { get; set; }
 
         public string Password { get; set; }
-        public byte[]? ResumeContent { get; set; }
-        public string ResumeName {  get; set; }
+        public string ResumeBase64 { get; set; }
+        public string ResumeName { get; set; }
     }
 }

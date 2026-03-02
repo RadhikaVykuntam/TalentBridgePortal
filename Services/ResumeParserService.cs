@@ -23,14 +23,14 @@ namespace JobPortal.API.Services
         {
             _httpClient = httpClientFactory.CreateClient();
             _dbContext = dbContext;
-            _apiKey = configuration["Groq:ApiKey"];
+            _apiKey = configuration["Groq:ApiKey"] ?? throw new InvalidOperationException("Groq:ApiKey is missing from configuration.");
             _model = configuration["Groq:Model"] ?? "llama-3.3-70b-versatile";
         }
 
-        public async Task<ResumeEvaluationDto> EvaluateResumeFromDbAsync(string jobSeekerId)
+        public async Task<ResumeEvaluationDto> EvaluateResumeFromDbAsync(string email)
         {
             var jobSeeker = await _dbContext.JobSeekers
-                                .FirstOrDefaultAsync(j => j.Email == jobSeekerId);
+                                .FirstOrDefaultAsync(j => j.Email == email);
 
             if (jobSeeker == null || jobSeeker.ResumeContent == null)
                 throw new Exception("Resume not found.");
@@ -50,23 +50,47 @@ namespace JobPortal.API.Services
                 throw new Exception("Could not extract text from resume.");
 
             string prompt = $@"
-Evaluate this resume for general job market suitability.
-You MUST respond in EXACTLY this format with no extra text before it:
+You are an expert resume evaluator. Carefully read and analyze the resume below.
+First determine if this candidate is a FRESHER (0-1 years experience or student/recent graduate) or EXPERIENCED.
 
-PROBABILITY: 75
-REASONING: First line of reasoning. Second line of reasoning.
-SUMMARY: First line of summary. Second line of summary.
-IMPROVEMENTS: List the top 3 most important things to improve, each on a new line starting with '- '.
-MARKET_COMPARISON: Compare this resume against current market standards and list what is missing or below standard, each on a new line starting with '* '.
+If FRESHER, calculate PROBABILITY based on:
+- Academic performance and education quality (0-25 points)
+- Technical skills and tools known (0-25 points)
+- Projects, internships, certifications (0-25 points)
+- Resume presentation and completeness (0-25 points)
+
+If EXPERIENCED, calculate PROBABILITY based on:
+- Years of experience (0-20 points)
+- Technical skills relevance (0-20 points)
+- Education qualification (0-20 points)
+- Project experience and achievements (0-20 points)
+- Resume presentation and completeness (0-20 points)
+
+Add all scores and give final PROBABILITY out of 100.
+
+You MUST respond in EXACTLY this format:
+
+CANDIDATE_TYPE: [FRESHER or EXPERIENCED]
+PROBABILITY: [calculated number]
+REASONING: [2 lines based on actual resume content]
+SUMMARY: [2 lines about this specific candidate's strengths]
+IMPROVEMENTS:
+- [specific improvement 1 based on what is missing in this resume]
+- [specific improvement 2 based on what is missing in this resume]
+- [specific improvement 3 based on what is missing in this resume]
+MARKET_COMPARISON:
+* [specific gap 1 comparing this resume to market standards for FRESHER or EXPERIENCED]
+* [specific gap 2 comparing this resume to market standards]
+* [specific gap 3 comparing this resume to market standards]
+* [specific gap 4 comparing this resume to market standards]
 
 Rules:
 - PROBABILITY must be a whole number between 0 and 100
 - Do not write 75% just write 75
-- REASONING must be exactly 2 lines only, focused on overall suitability
-- SUMMARY must be exactly 2 lines focusing on candidate's key strengths
-- IMPROVEMENTS must be the most critical and focused points only, maximum 3 points
-- MARKET_COMPARISON must compare against current industry standards, maximum 4 points
-- Keep everything concise and to the point
+- For FRESHER: focus on potential, academics, projects and internships
+- For EXPERIENCED: focus on work history, achievements and impact
+- Every section must be based on ACTUAL resume content
+- Be strict and realistic with scoring
 
 Resume:
 {resumeText}

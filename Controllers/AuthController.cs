@@ -34,22 +34,21 @@ namespace TalentBridgePortal.Controllers
         [HttpPost("signin")]
         public async Task<IActionResult> Signin(LoginDto dto)
         {
-            JobSeeker token = await _service.Login(dto);
+            JobSeekerDto response = await _service.Login(dto);
 
-            if (token == null)
+            if (response == null)
                 return Unauthorized("Invalid credentials");
-
-            var response = new JobSeeker
-            {
-                Id = token.Id,
-                FirstName = token.FirstName,
-                LastName = token.LastName,
-                Email = token.Email,
-                ResumeContent = token.ResumeContent
-            };
 
             return Ok(response);
         }
 
+        [HttpPost("updateresume")]
+        public async Task<IActionResult> UpdateResume(UpdateResumeDto dto)
+        {
+            string response = await _service.UpdateResume(dto);
+            if (response == null)
+                return NotFound($"Job seeker with email '{dto.Email}' not found.");
+            return Ok(response);
+        }
     }
 }

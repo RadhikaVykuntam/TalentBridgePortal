@@ -26,7 +26,7 @@ namespace TalentBridgePortal.Services
                 await dto.Resume.CopyToAsync(ms);
                 resumeData = ms.ToArray();
             }
-
+            Console.WriteLine($"{_context.JobSeekers.Count()}");
             var user = new JobSeeker
             {
                 Id = Guid.NewGuid(),
@@ -34,27 +34,23 @@ namespace TalentBridgePortal.Services
                 LastName = dto.LastName,
                 Email = dto.Email,
                 Password = dto.Password, // demo only
-                ResumeContent = resumeData
+                ResumeContent = resumeData,
+                ResumeName = dto.Resume.FileName
             };
-
             _context.JobSeekers.Add(user);
             await _context.SaveChangesAsync();
-
             return user.Id; 
         }
 
-        public async Task<JobSeeker?> Login(LoginDto dto)
+        public async Task<JobSeekerDto?> Login(LoginDto dto)
         {
-            var user = await _context.JobSeekers
-                .FirstOrDefaultAsync(x => x.Email == dto.Email);
-
+            Console.WriteLine($"{_context.JobSeekers.Count()}");
+            var user = await _context.JobSeekers.FirstOrDefaultAsync(j => j.Email == dto.Email && j.Password == dto.Password);
             if (user == null)
                 return null;
-
             if (dto.Password ==null)
                 return null;
 
-            // Convert resume bytes to Base64 to send via JSON
             string resumeBase64 = user.ResumeContent != null
                 ? Convert.ToBase64String(user.ResumeContent)
                 : "";
@@ -69,13 +65,13 @@ namespace TalentBridgePortal.Services
                 ResumeBase64 = resumeBase64
             };
         }
-        public async Task<bool> UpdateResume(UpdateResumeDto dto)
+        public async Task<string> UpdateResume(UpdateResumeDto dto)
         {
             var user = await _context.JobSeekers.FirstOrDefaultAsync(x => x.Email == dto.Email);
             if (user == null)
-                return false;
+                return "Invalid credentials";
             if (dto.Resume == null || dto.Resume.Length == 0)
-                return false;
+                return "invaild resume";
             using (var ms = new MemoryStream())
             {
                 await dto.Resume.CopyToAsync(ms);
@@ -85,7 +81,7 @@ namespace TalentBridgePortal.Services
             user.LastName = dto.LastName;
             user.ResumeName = dto.Resume.FileName;
             await _context.SaveChangesAsync();
-            return true;
+            return "Updated Successfully";
         }
     }
 }
