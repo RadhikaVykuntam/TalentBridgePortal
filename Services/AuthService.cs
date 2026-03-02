@@ -54,7 +54,38 @@ namespace TalentBridgePortal.Services
             if (dto.Password ==null)
                 return null;
 
-            return user;
+            // Convert resume bytes to Base64 to send via JSON
+            string resumeBase64 = user.ResumeContent != null
+                ? Convert.ToBase64String(user.ResumeContent)
+                : "";
+
+            return new JobSeekerDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                ResumeName = user.ResumeName ?? "",
+                ResumeBase64 = resumeBase64
+            };
+        }
+        public async Task<bool> UpdateResume(UpdateResumeDto dto)
+        {
+            var user = await _context.JobSeekers.FirstOrDefaultAsync(x => x.Email == dto.Email);
+            if (user == null)
+                return false;
+            if (dto.Resume == null || dto.Resume.Length == 0)
+                return false;
+            using (var ms = new MemoryStream())
+            {
+                await dto.Resume.CopyToAsync(ms);
+                user.ResumeContent = ms.ToArray();
+            }
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.ResumeName = dto.Resume.FileName;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

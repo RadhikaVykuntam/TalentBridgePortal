@@ -23,7 +23,7 @@ namespace JobPortal.API.Services
         {
             _httpClient = httpClientFactory.CreateClient();
             _dbContext = dbContext;
-            _apiKey = Environment.GetEnvironmentVariable("VITE_GROQ_API_KEY");
+            _apiKey = configuration["Groq:ApiKey"];
             _model = configuration["Groq:Model"] ?? "llama-3.3-70b-versatile";
         }
 
