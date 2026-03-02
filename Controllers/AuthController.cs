@@ -18,9 +18,17 @@ namespace TalentBridgePortal.Controllers
         }
 
         [HttpPost("signup")]
-        public async Task<IActionResult> Signup([FromForm] RegisterDto dto)
+        public async Task<IActionResult> Register([FromForm] RegisterDto dto)
         {
-            return Ok(await _service.Register(dto));
+            try
+            {
+                var userId = await _service.Register(dto);
+                return Ok(new { Id = userId });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
         }
 
         [HttpPost("signin")]
@@ -33,6 +41,7 @@ namespace TalentBridgePortal.Controllers
 
             var response = new JobSeeker
             {
+                Id = token.Id,
                 FirstName = token.FirstName,
                 LastName = token.LastName,
                 Email = token.Email,
@@ -41,5 +50,6 @@ namespace TalentBridgePortal.Controllers
 
             return Ok(response);
         }
+
     }
 }

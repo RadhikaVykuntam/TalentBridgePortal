@@ -10,6 +10,5 @@ namespace TalentBridgePortal.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)  : base(options) { }
 
         public DbSet<JobSeeker> JobSeekers { get; set; }
-        public DbSet<ResumeEvaluation> ResumeEvaluations { get; set; }
     }
 }

@@ -15,13 +15,12 @@ namespace TalentBridgePortal.Services
             _context = context;
         }
 
-        public async Task<string> Register(RegisterDto dto)
+        public async Task<Guid> Register(RegisterDto dto)
         {
             if (await _context.JobSeekers.AnyAsync(x => x.Email == dto.Email))
-                return "User exists";
+                throw new InvalidOperationException("User already exists"); 
 
             byte[] resumeData;
-
             using (var ms = new MemoryStream())
             {
                 await dto.Resume.CopyToAsync(ms);
@@ -41,7 +40,7 @@ namespace TalentBridgePortal.Services
             _context.JobSeekers.Add(user);
             await _context.SaveChangesAsync();
 
-            return "Registered Successfully";
+            return user.Id; 
         }
 
         public async Task<JobSeeker?> Login(LoginDto dto)
